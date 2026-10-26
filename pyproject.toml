@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "learn-ocean-slab"
+version = "0.1.0"
+description = "Minimal oceanography learning package"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [{ name = "learn_ocean_slab contributors" }]
+dependencies = [
+  "numpy>=2.0.0",
+  "scipy>=1.14.0",
+  "matplotlib>=3.9.0",
+  "xarray>=2024.0.0",
+  "gsw>=3.6.19",
+  "PyYAML>=6.0.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3.0"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
