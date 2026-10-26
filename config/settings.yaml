@@ -1,0 +1,5 @@
+dataset:
+  name: world_ocean
+  source: local
+plot:
+  style: default
