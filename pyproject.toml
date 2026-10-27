@@ -16,10 +16,17 @@ dependencies = [
   "xarray>=2024.0.0",
   "gsw>=3.6.19",
   "PyYAML>=6.0.2",
+  "omegaconf>=2.4.0",
 ]
 
+[project.scripts]
+slab_model_movie = "learn_ocean_slab.cli:main"
+
 [project.optional-dependencies]
-dev = ["pytest>=8.3.0"]
+dev = [
+    "ipykernel>=7.4.0",
+    "pytest>=8.3.0",
+]
 
 [tool.pytest.ini_options]
 addopts = "-q"

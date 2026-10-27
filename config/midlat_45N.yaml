@@ -1,0 +1,17 @@
+model: pollard_millard
+lat: 45.0           # degrees N
+H: 50.0             # m
+rho: 1025.0         # kg/m^3
+tau_x: 0.1          # N/m^2, eastward
+tau_y: 0.0          # N/m^2, northward
+damping_days: 5.0   # 1/r; use .inf for no damping
+duration_days: 10.0
+dt: 600.0           # s
+u_initial: 0.1
+v_initial: 0.1
+wind_type: steady         # steady, rotating or oscillating
+wind_period_hours: .inf   # rotation/oscillation period; negative = counterclockwise
+wind_duration_hours: .inf # .inf = wind never stops
+gust_std: 0.0             # N/m^2; 0 = no gusts
+gust_hours: 1.0
+seed: 0

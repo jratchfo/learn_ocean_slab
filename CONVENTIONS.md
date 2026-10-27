@@ -1,6 +1,6 @@
-# CONVENTIONS
-
-- Keep production code under `src/` and tests under `tests/`.
-- Use `uv` for environment and dependency management.
-- Store runtime configuration in YAML files under `config/`.
-- Keep changes minimal and focused.
+## CONVENTIONS
+ - velocity ( u, v) in [m/s]
+ - coriolis frequency in [1/s]
+ - lengths scales (x, y) in [m]
+ - s = u + iv (either can be used)
+ - x (east), y (north), z (up)
