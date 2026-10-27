@@ -4,9 +4,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation, writers
+from matplotlib.animation import writers
 from matplotlib.colors import Normalize
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter, LogFormatter
 
 from .config import SECONDS_PER_DAY
 
@@ -81,7 +81,7 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     speed_now, = ax_speed.plot([], [], "o", color="C0", ms=6)
     ax_speed.set(yscale="log", ylabel="current speed [cm/s]")
     ax_speed.yaxis.set_major_formatter(FormatStrFormatter("%g"))
-    ax_speed.yaxis.set_minor_formatter(FormatStrFormatter("%g"))
+    ax_speed.yaxis.set_minor_formatter(LogFormatter(minor_thresholds=(1, 0.4)))  # label minor ticks only on short ranges
     ax_speed.tick_params(labelbottom=False)
 
     ax_wind.plot(days, np.abs(tau), color="0.85", lw=1)
@@ -103,13 +103,19 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
         wind_now.set_data([days[n]], [np.abs(tau[n])])
         clock.set_text(f"day {days[n]:.2f}")
 
+    fig.canvas.draw()  # lay the figure out once ...
+    fig.set_layout_engine("none")  # ... and keep that layout, instead of redoing it every frame
+
     path = Path(path)
     writer = "pillow" if path.suffix.lower() == ".gif" else "ffmpeg"
     if not writers.is_available(writer):
         plt.close(fig)
         raise RuntimeError(f"{writer} is not installed; install it (brew install ffmpeg) or save a .gif")
     path.parent.mkdir(parents=True, exist_ok=True)
-    animation = FuncAnimation(fig, draw, frames=frames)
-    animation.save(path, writer=writer, fps=fps, dpi=dpi)
+    movie_writer = writers[writer](fps=fps)
+    with movie_writer.saving(fig, path, dpi):
+        for n in frames:  # a plain loop draws each frame once; FuncAnimation.save draws it twice
+            draw(n)
+            movie_writer.grab_frame()
     plt.close(fig)
     return path
