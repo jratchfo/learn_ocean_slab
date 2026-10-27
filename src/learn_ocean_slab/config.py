@@ -14,7 +14,7 @@ SECONDS_PER_DAY=86400.0
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
 MOVIE_DIR = Path(__file__).resolve().parents[2] / "movies"
 
-def load_config(path: str | Path, overrides: list[str] = (), config_class: type = None) -> RunConfig:
+def load_config(path: str | Path, overrides: list[str] = (), config_class: type = None) -> "RunConfig":
     """Load a YAML configuration file, then apply overrides like "lat=30" or "u_initial=0.5".
 
     config_class is the model's config dataclass (RunConfig if not given). Every one of its

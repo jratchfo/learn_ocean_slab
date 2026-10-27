@@ -21,7 +21,7 @@ def _square_limits(ax, z):
     return half
 
 
-def make_movie(results, path, frame_hours=1.0, fps=30, dpi=100):
+def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     """Save an animation of a run from pm_slab.run to path.
 
     The file extension picks the format: .mp4 (made with ffmpeg) or .gif.

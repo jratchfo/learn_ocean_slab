@@ -34,6 +34,7 @@ def main(argv=None):
         help="movie file, .mp4 or .gif (default: config name plus overrides, .mp4, in the project's movies folder)",
     )
     parser.add_argument("--frame_hours", type=float, default=1.0, help="model hours per movie frame (default 1)")
+    parser.add_argument("--fps", type=float, default=15, help="movie frames per second (default 15)")
     args = parser.parse_intermixed_args(argv)  # lets overrides come before or after -o
 
     try:
@@ -49,5 +50,5 @@ def main(argv=None):
     # e.g. midlat_45N_u_initial0.5_lat30.mp4, so runs with different overrides don't overwrite each other
     name = "_".join([args.config.stem, *(o.replace("=", "") for o in args.overrides)]) + ".mp4"
     output = args.output or MOVIE_DIR / name
-    path = make_movie(run(config), output, frame_hours=args.frame_hours)
+    path = make_movie(run(config), output, frame_hours=args.frame_hours, fps=args.fps)
     print(f"saved {path}")
