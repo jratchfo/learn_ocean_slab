@@ -24,9 +24,9 @@ If you will commit changes to the notebooks, also run these once in your clone. 
 remove notebook outputs (plots, movies) on `git add`, so commits contain only code and text:
 
 ```bash
-git config filter.nbstripout.clean "uv run --quiet nbstripout"
+git config filter.nbstripout.clean "uv run --quiet nbstripout --keep-id"
 git config filter.nbstripout.smudge cat
-git config diff.ipynb.textconv "uv run --quiet nbstripout -t"
+git config diff.ipynb.textconv "uv run --quiet nbstripout --keep-id -t"
 ```
 
 These settings live in your clone's `.git/config`, which git never copies between clones, so
