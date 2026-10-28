@@ -54,15 +54,27 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     half = _square_limits(ax_hodo, np.concatenate([s, s_steady, [0]]))
     ax_hodo.plot(s.real, s.imag, color="0.85", lw=1)
     ax_hodo.plot(0, 0, "+", color="0.5", ms=10)
-    hodo_trail, = ax_hodo.plot([], [], color="C0", lw=1.5)
-    hodo_now, = ax_hodo.plot([], [], "o", color="C0", ms=8, label="current")
-    steady_now, = ax_hodo.plot([], [], "kx", ms=9, label="steady state for this wind")
+    (hodo_trail,) = ax_hodo.plot([], [], color="C0", lw=1.5)
+    (hodo_now,) = ax_hodo.plot([], [], "o", color="C0", ms=8, label="current")
+    (steady_now,) = ax_hodo.plot([], [], "kx", ms=9, label="steady state for this wind")
     tau_max = max(np.abs(tau).max(), 1e-12)
     arrow_scale = 0.6 * half / tau_max  # longest wind arrow is 60% of the axis half-width
     work_max = max(np.abs(wind_work).max(), 1e-12)
     arrow = ax_hodo.quiver(
-        [0], [0], [0], [0], [0], cmap="RdBu_r", norm=Normalize(-work_max, work_max),
-        angles="xy", scale_units="xy", scale=1, width=0.012, zorder=3, edgecolor="k", linewidth=0.8,
+        [0],
+        [0],
+        [0],
+        [0],
+        [0],
+        cmap="RdBu_r",
+        norm=Normalize(-work_max, work_max),
+        angles="xy",
+        scale_units="xy",
+        scale=1,
+        width=0.012,
+        zorder=3,
+        edgecolor="k",
+        linewidth=0.8,
     )
     fig.colorbar(arrow, ax=ax_hodo, shrink=0.7, label="wind work τ·u [W/m²]")
     ax_hodo.set(xlabel="u [cm/s]", ylabel="v [cm/s]", title="Hodograph (arrow: wind direction)")
@@ -71,22 +83,24 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     # Parcel path
     _square_limits(ax_path, np.concatenate([position, [0]]))
     ax_path.plot(position.real, position.imag, color="0.85", lw=1)
-    path_trail, = ax_path.plot([], [], color="C1", lw=1.5)
-    path_now, = ax_path.plot([], [], "o", color="C1", ms=8)
+    (path_trail,) = ax_path.plot([], [], color="C1", lw=1.5)
+    (path_now,) = ax_path.plot([], [], "o", color="C1", ms=8)
     ax_path.set(xlabel="x [km]", ylabel="y [km]", title="Parcel path")
 
     # Time series
     ax_speed.plot(days, speed, color="0.85", lw=1)
-    speed_trail, = ax_speed.plot([], [], color="C0", lw=1.5)
-    speed_now, = ax_speed.plot([], [], "o", color="C0", ms=6)
+    (speed_trail,) = ax_speed.plot([], [], color="C0", lw=1.5)
+    (speed_now,) = ax_speed.plot([], [], "o", color="C0", ms=6)
     ax_speed.set(yscale="log", ylabel="current speed [cm/s]")
     ax_speed.yaxis.set_major_formatter(FormatStrFormatter("%g"))
-    ax_speed.yaxis.set_minor_formatter(LogFormatter(minor_thresholds=(1, 0.4)))  # label minor ticks only on short ranges
+    ax_speed.yaxis.set_minor_formatter(
+        LogFormatter(minor_thresholds=(1, 0.4))
+    )  # label minor ticks only on short ranges
     ax_speed.tick_params(labelbottom=False)
 
     ax_wind.plot(days, np.abs(tau), color="0.85", lw=1)
-    wind_trail, = ax_wind.plot([], [], color="C2", lw=1.5)
-    wind_now, = ax_wind.plot([], [], "o", color="C2", ms=6)
+    (wind_trail,) = ax_wind.plot([], [], color="C2", lw=1.5)
+    (wind_now,) = ax_wind.plot([], [], "o", color="C2", ms=6)
     ax_wind.set(xlabel="time [days]", ylabel="|τ| [N/m²]", xlim=(days[0], days[-1]), ylim=(0, 1.1 * tau_max))
     clock = ax_speed.text(0.99, 0.92, "", transform=ax_speed.transAxes, ha="right", va="top")
 

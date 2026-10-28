@@ -27,8 +27,16 @@ dev = [
     "ipykernel>=7.4.0",
     "nbstripout>=0.9.1",
     "pytest>=8.3.0",
+    "ruff>=0.17.3",
 ]
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]  # ruff's defaults (syntax errors, likely bugs) plus sorted imports

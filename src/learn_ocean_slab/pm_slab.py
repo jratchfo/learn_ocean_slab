@@ -1,16 +1,19 @@
-''' 
+"""
 Pollard-Millard Slab model (based on their 1970 paper)
-'''
+"""
+
 import numpy as np
 import xarray as xr
-from .utils import *
+
 from .forcing import wind_from_config
 
-def exp_ix(x):
-    return np.exp(1j*x)
-    #return np.cos(x)+ np.sin(x)*(0+1j) # the same thing
 
-def pm_model_current_response_constant_wind(t, tau_over_rho_h, f, r,  s_0):
+def exp_ix(x):
+    return np.exp(1j * x)
+    # return np.cos(x)+ np.sin(x)*(0+1j) # the same thing
+
+
+def pm_model_current_response_constant_wind(t, tau_over_rho_h, f, r, s_0):
     """
 
     The Pollard-Millard model is given by
@@ -22,13 +25,13 @@ def pm_model_current_response_constant_wind(t, tau_over_rho_h, f, r,  s_0):
     - this can be combined to:
     d(u + iv)/dt  +  (-f v + i f u)  =  (Tx + i Ty)  - r (u + iv)
     d(u + iv)/dt  +  if(i v + u)  =  (Tx + i Ty)  - r (u + iv)
-    
+
     - substitute s = u+iv and rearrange
     ds/dt + (if+r)s = (Tx+i Ty) = T
 
     - The homogenous solution
-     s_g(t) = A exp(-(if+r)*t) 
-    
+     s_g(t) = A exp(-(if+r)*t)
+
     - Try a particular solution s_p = C, then ds_p/dt =0
     (if+r) s_p = T , or s_p = T/(if+r)
 
@@ -45,25 +48,22 @@ def pm_model_current_response_constant_wind(t, tau_over_rho_h, f, r,  s_0):
 
 
     t = times[s] (array),
-    tau_over_rho_h: forcing (tau_x + i tau_y)/rho/H 
+    tau_over_rho_h: forcing (tau_x + i tau_y)/rho/H
     f: coriolis [1/s]
     r: damping rate [1/s]
     s_0: initial velocity
-    
+
     returns: s = u + iv [m/s]
-    
+
     """
-    return s_0*(exp_ix(-f*t))*np.exp(-r*t) + tau_over_rho_h/(f*(1j)+r) * (1- exp_ix(-f*t)*np.exp(-r*t))
+    return s_0 * (exp_ix(-f * t)) * np.exp(-r * t) + tau_over_rho_h / (f * (1j) + r) * (
+        1 - exp_ix(-f * t) * np.exp(-r * t)
+    )
+
 
 def pm_model_instant_transport_constant_wind(s, H):
-    """ depth integrated transport [m^2/s] - since nothing depends on Z,  int( s(t) dz) = H s(t)"""
-    return H *s 
-
-
-def pm_model_integrated_transport_constant_wind(s, H):
-    M = H *s 
-
-
+    """depth integrated transport [m^2/s] - since nothing depends on Z,  int( s(t) dz) = H s(t)"""
+    return H * s
 
 
 def pm_model_integrated_transport_constant_wind(t, tau_over_rho_h, f, r, s_0, H):
@@ -78,8 +78,8 @@ def pm_model_integrated_transport_constant_wind(t, tau_over_rho_h, f, r, s_0, H)
     - Multiply by H to go from velocity to transport.
     Divided by H, this is the displacement of a water parcel in the slab [m].
     """
-    s_p = tau_over_rho_h / (1j*f + r)
-    return H * (s_p*t + (s_0 - s_p) * (1 - np.exp(-(1j*f + r)*t)) / (1j*f + r))
+    s_p = tau_over_rho_h / (1j * f + r)
+    return H * (s_p * t + (s_0 - s_p) * (1 - np.exp(-(1j * f + r) * t)) / (1j * f + r))
 
 
 def pm_model_current_response(t, tau, rho, H, f, r, s_0):
@@ -93,10 +93,10 @@ def pm_model_current_response(t, tau, rho, H, f, r, s_0):
     s = np.zeros(len(t), dtype=complex)
     s[0] = s_0
     d_tau = np.diff(tau)
-    for n, dt in enumerate(np.diff(t),0):
-        T = (tau[n+1]-d_tau[n]/2 )/(rho*H)       
-        s[n+1] = pm_model_current_response_constant_wind(dt,T,f,r,s[n] )
-    
+    for n, dt in enumerate(np.diff(t), 0):
+        T = (tau[n + 1] - d_tau[n] / 2) / (rho * H)
+        s[n + 1] = pm_model_current_response_constant_wind(dt, T, f, r, s[n])
+
     return s
 
 
@@ -110,10 +110,11 @@ def pm_model_position(t, tau, rho, H, f, r, s):
     """
     position = np.zeros(len(t), dtype=complex)
     d_tau = np.diff(tau)
-    for n, dt in enumerate(np.diff(t),0):
-        T = (tau[n+1]-d_tau[n]/2 )/(rho*H)   
-        position[n+1] = position[n] + pm_model_integrated_transport_constant_wind(dt, T, f, r, s[n], H) / H
+    for n, dt in enumerate(np.diff(t), 0):
+        T = (tau[n + 1] - d_tau[n] / 2) / (rho * H)
+        position[n + 1] = position[n] + pm_model_integrated_transport_constant_wind(dt, T, f, r, s[n], H) / H
     return position
+
 
 def run(config):
     """Run the slab model for one configuration. Returns an xarray Dataset."""
@@ -127,23 +128,32 @@ def run(config):
     M = config.H * s  # depth-integrated transport [m^2/s]
 
     wind_work = (tau.conjugate() * s).real  # tau_x u + tau_y v, energy input from the wind [W/m^2]
-    angle_to_wind = np.where(tau != 0, np.degrees(np.angle(s * tau.conjugate())), np.nan)  # current direction minus wind direction [degrees]; NaN with no wind
-    position = pm_model_position(t, tau, config.rho, config.H, config.f, config.r, s) #water parcel position
+    angle_to_wind = np.where(
+        tau != 0, np.degrees(np.angle(s * tau.conjugate())), np.nan
+    )  # current direction minus wind direction [degrees]; NaN with no wind
+    position = pm_model_position(t, tau, config.rho, config.H, config.f, config.r, s)  # water parcel position
 
     return xr.Dataset(
         {
-        "u": ("time", s.real, {"units": "m/s", "long_name": "eastward velocity"}),
-        "v": ("time", s.imag, {"units": "m/s", "long_name": "northward velocity"}),
-        "tau_x": ("time", tau.real, {"units": "N/m^2", "long_name": "eastward wind stress"}),
-        "tau_y": ("time", tau.imag, {"units": "N/m^2", "long_name": "northward wind stress"}),
-        "u_steady": ("time", s_steady.real, {"units": "m/s", "long_name": "eastward steady-state velocity"}),
-        "v_steady": ("time", s_steady.imag, {"units": "m/s", "long_name": "northward steady-state velocity"}),
-        "M_x": ("time", M.real, {"units": "m^2/s", "long_name": "eastward transport"}),
-        "M_y": ("time", M.imag, {"units": "m^2/s", "long_name": "northward transport"}),
-        "wind_work": ("time", wind_work, {"units": "W/m^2", "long_name": "wind work on the slab"}),
-        "angle_to_wind": ("time", angle_to_wind, {"units": "degrees", "long_name": "current direction relative to the wind, positive = left of the wind"}),
-        "x": ("time", position.real, {"units": "m", "long_name": "eastward parcel displacement"}),
-        "y": ("time", position.imag, {"units": "m", "long_name": "northward parcel displacement"})
+            "u": ("time", s.real, {"units": "m/s", "long_name": "eastward velocity"}),
+            "v": ("time", s.imag, {"units": "m/s", "long_name": "northward velocity"}),
+            "tau_x": ("time", tau.real, {"units": "N/m^2", "long_name": "eastward wind stress"}),
+            "tau_y": ("time", tau.imag, {"units": "N/m^2", "long_name": "northward wind stress"}),
+            "u_steady": ("time", s_steady.real, {"units": "m/s", "long_name": "eastward steady-state velocity"}),
+            "v_steady": ("time", s_steady.imag, {"units": "m/s", "long_name": "northward steady-state velocity"}),
+            "M_x": ("time", M.real, {"units": "m^2/s", "long_name": "eastward transport"}),
+            "M_y": ("time", M.imag, {"units": "m^2/s", "long_name": "northward transport"}),
+            "wind_work": ("time", wind_work, {"units": "W/m^2", "long_name": "wind work on the slab"}),
+            "angle_to_wind": (
+                "time",
+                angle_to_wind,
+                {
+                    "units": "degrees",
+                    "long_name": "current direction relative to the wind, positive = left of the wind",
+                },
+            ),
+            "x": ("time", position.real, {"units": "m", "long_name": "eastward parcel displacement"}),
+            "y": ("time", position.imag, {"units": "m", "long_name": "northward parcel displacement"}),
         },
         coords={"time": ("time", t, {"units": "s"})},
         attrs=config.to_dict(),

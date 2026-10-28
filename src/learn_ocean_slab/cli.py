@@ -30,7 +30,9 @@ def main(argv=None):
     parser.add_argument("config", type=Path, help="YAML file with a model: field and every field that model needs")
     parser.add_argument("overrides", nargs="*", help="changes to the YAML values, written name=value")
     parser.add_argument(
-        "-o", "--output", type=Path,
+        "-o",
+        "--output",
+        type=Path,
         help="movie file, .mp4 or .gif (default: config name plus overrides, .mp4, in the project's movies folder)",
     )
     parser.add_argument("--frame_hours", type=float, default=1.0, help="model hours per movie frame (default 1)")

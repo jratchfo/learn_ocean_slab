@@ -21,7 +21,6 @@ def test_load_config_reads_values(tmp_path: Path) -> None:
     assert config.H == 80.0
 
 
-
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
     path = tmp_path / "bad.yaml"
     path.write_text("- one\n- two\n", encoding="utf-8")
