@@ -76,15 +76,16 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
         edgecolor="k",
         linewidth=0.8,
     )
-    fig.colorbar(arrow, ax=ax_hodo, shrink=0.7, label="wind work τ·u [W/m²]")
+    # on the left, so it sits beside the hodograph it describes rather than between the two panels
+    fig.colorbar(arrow, ax=ax_hodo, location="left", shrink=0.7, label="wind work τ·u [W/m²]")
     ax_hodo.set(xlabel="u [cm/s]", ylabel="v [cm/s]", title="Hodograph (arrow: wind direction)")
     ax_hodo.legend(loc="upper right", fontsize=9)
 
     # Parcel path
     _square_limits(ax_path, np.concatenate([position, [0]]))
     ax_path.plot(position.real, position.imag, color="0.85", lw=1)
-    (path_trail,) = ax_path.plot([], [], color="C1", lw=1.5)
-    (path_now,) = ax_path.plot([], [], "o", color="C1", ms=8)
+    (path_trail,) = ax_path.plot([], [], color="C0", lw=1.5)  # same color as the current: same water
+    (path_now,) = ax_path.plot([], [], "o", color="C0", ms=8)
     ax_path.set(xlabel="x [km]", ylabel="y [km]", title="Parcel path")
 
     # Time series
