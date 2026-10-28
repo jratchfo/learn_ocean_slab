@@ -48,7 +48,7 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     ax_speed = fig.add_subplot(grid[1, :])
     ax_wind = fig.add_subplot(grid[2, :], sharex=ax_speed)
     a = results.attrs
-    fig.suptitle(f"lat {a['lat']}°, H = {a['H']} m, {a['wind_type']} wind")
+    fig.suptitle(rf"lat {a['lat']}$^\circ$, H = {a['H']} m, {a['wind_type']} wind")
 
     # Hodograph: full run faint, the part so far bright, and the wind arrow from zero velocity
     half = _square_limits(ax_hodo, np.concatenate([s, s_steady, [0]]))
@@ -77,7 +77,7 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
         linewidth=0.8,
     )
     # on the left, so it sits beside the hodograph it describes rather than between the two panels
-    fig.colorbar(arrow, ax=ax_hodo, location="left", shrink=0.7, label="wind work τ·u [W/m²]")
+    fig.colorbar(arrow, ax=ax_hodo, location="left", shrink=0.7, label=r"wind work $\tau \cdot u$ [W/m$^2$]")
     ax_hodo.set(xlabel="u [cm/s]", ylabel="v [cm/s]", title="Hodograph (arrow: wind direction)")
     ax_hodo.legend(loc="upper right", fontsize=9)
 
@@ -102,7 +102,7 @@ def make_movie(results, path, frame_hours=1.0, fps=15, dpi=100):
     ax_wind.plot(days, np.abs(tau), color="0.85", lw=1)
     (wind_trail,) = ax_wind.plot([], [], color="C2", lw=1.5)
     (wind_now,) = ax_wind.plot([], [], "o", color="C2", ms=6)
-    ax_wind.set(xlabel="time [days]", ylabel="|τ| [N/m²]", xlim=(days[0], days[-1]), ylim=(0, 1.1 * tau_max))
+    ax_wind.set(xlabel="time [days]", ylabel=r"$|\tau|$ [N/m$^2$]", xlim=(days[0], days[-1]), ylim=(0, 1.1 * tau_max))
     clock = ax_speed.text(0.99, 0.92, "", transform=ax_speed.transAxes, ha="right", va="top")
 
     def draw(n):
