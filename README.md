@@ -2,18 +2,35 @@
 
 Learning Oceanography with a minimal Python project layout.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jratchfo/learn_ocean_slab/blob/main/notebooks/inertial_oscillations.ipynb)
+Runs in Google Colab with no setup: the notebook's first cell fetches the code.
+
 ## Requirements
 
-- Python 3.14+
+- Python 3.12+ (developed on 3.14; 3.12 is what Colab runs)
 - [uv](https://docs.astral.sh/uv/)
 - [ffmpeg](https://ffmpeg.org/), for `.mp4` movies (`brew install ffmpeg`). Not a Python package, so uv
   can't install it. Without it, `slab_model_movie` can still write a `.gif` with `-o run.gif`.
 
-## Setup (uv)
+## First-time setup
 
 ```bash
+git clone https://github.com/jratchfo/learn_ocean_slab.git
+cd learn_ocean_slab
 uv sync --extra dev
 ```
+
+If you will commit changes to the notebooks, also run these once in your clone. They make git
+remove notebook outputs (plots, movies) on `git add`, so commits contain only code and text:
+
+```bash
+git config filter.nbstripout.clean "uv run --quiet nbstripout"
+git config filter.nbstripout.smudge cat
+git config diff.ipynb.textconv "uv run --quiet nbstripout -t"
+```
+
+These settings live in your clone's `.git/config`, which git never copies between clones, so
+each clone needs them once. Skipping them breaks nothing; your notebook commits just include outputs.
 
 ## Run tests
 
