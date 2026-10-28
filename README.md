@@ -2,7 +2,7 @@
 
 Learning Oceanography with a minimal Python project layout.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jratchfo/learn_ocean_slab/blob/main/notebooks/inertial_oscillations.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jratchfo/learn_ocean_slab/blob/main/notebooks/pollard_millard_inertial_oscillations.ipynb)
 Runs in Google Colab with no setup: the notebook's first cell fetches the code.
 
 ## Requirements
