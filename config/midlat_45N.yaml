@@ -4,9 +4,12 @@ H: 50.0             # m
 rho: 1025.0         # kg/m^3
 tau_x: 0.1          # N/m^2, eastward
 tau_y: 0.0          # N/m^2, northward
+zeta_over_f: 0.0    # background vorticity / f; 0 = no front
 damping_days: 5.0   # 1/r; use .inf for no damping
 duration_days: 10.0
 dt: 600.0           # s
+step_type: exact    # exact or rk4
+forcing: average    # average or linear; how wind is treated within a step
 u_initial: 0.1
 v_initial: 0.1
 wind_type: steady         # steady, rotating or oscillating

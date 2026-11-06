@@ -12,12 +12,13 @@ from omegaconf import OmegaConf
 from omegaconf.errors import OmegaConfBaseException
 
 from . import pm_slab
-from .config import MOVIE_DIR, RunConfig, load_config
+from .config import MOVIE_DIR, load_config
 from .movie import make_movie
 
-# model name in the YAML -> (its config dataclass, its run function returning an xarray Dataset)
+# model name in the YAML -> its run function, which takes a RunConfig and returns an xarray Dataset
 MODELS = {
-    "pollard_millard": (RunConfig, pm_slab.run),
+    "pollard_millard": pm_slab.run,
+    # "pollard_rhines_thompson": prt_slab.run,  # add (with `from . import prt_slab`) once prt_slab.run exists
 }
 
 
@@ -43,8 +44,8 @@ def main(argv=None):
         model = OmegaConf.merge(OmegaConf.load(args.config), OmegaConf.from_dotlist(args.overrides)).get("model")
         if model not in MODELS:
             parser.error(f"model: {model!r} is not one of {', '.join(MODELS)}")
-        config_class, run = MODELS[model]
-        config = load_config(args.config, args.overrides, config_class)
+        run = MODELS[model]
+        config = load_config(args.config, args.overrides)
     except OmegaConfBaseException as error:
         parser.error(str(error))
     print(config)

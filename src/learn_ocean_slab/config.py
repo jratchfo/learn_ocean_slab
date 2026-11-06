@@ -1,5 +1,6 @@
 """Configuration loading helpers."""
 
+import warnings
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
@@ -16,19 +17,32 @@ CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
 MOVIE_DIR = Path(__file__).resolve().parents[2] / "movies"
 
 
-def load_config(path: str | Path, overrides: list[str] = (), config_class: type = None) -> "RunConfig":
+def load_config(path: str | Path, overrides: list[str] = ()) -> "RunConfig":
     """Load a YAML configuration file, then apply overrides like "lat=30" or "u_initial=0.5".
 
-    config_class is the model's config dataclass (RunConfig if not given). Every one of its
-    fields must be in the file; overrides only change values that are there.
-    A misspelled name, a missing field or a value of the wrong type raises an error.
+    Every shared RunConfig field must be in the file; model-specific fields may be left out.
+    A misspelled name, a missing shared field or a value of the wrong type raises an error.
     """
     data = OmegaConf.load(Path(path))
     if not isinstance(data, DictConfig):
         raise ValueError("YAML config must contain a top-level mapping")
-    schema = OmegaConf.structured(config_class or RunConfig)  # field names and types, no values
+    schema = OmegaConf.structured(RunConfig)  # field names and types, no values
     merged = OmegaConf.merge(schema, data, OmegaConf.from_dotlist(list(overrides)))
     return OmegaConf.to_object(merged)
+
+
+def check_model_fields(config, model, needs=()):
+    """Raise an error if a model-specific field the model needs is missing; warn about ones it ignores.
+
+    model: the model's name, for the messages. needs: names of the model-specific fields it uses.
+    """
+    missing = [name for name in needs if getattr(config, name) is None]
+    if missing:
+        raise ValueError(f"{model} needs {', '.join(missing)} in the config")
+    model_specific = [field.name for field in fields(config) if field.default is None]
+    ignored = [name for name in model_specific if name not in needs and getattr(config, name) is not None]
+    if ignored:
+        warnings.warn(f"{model} ignores {', '.join(ignored)}", stacklevel=3)  # points at the caller of run()
 
 
 @dataclass(frozen=True)
@@ -37,13 +51,16 @@ class RunConfig:
 
     model: str  # which slab model runs this config, e.g. pollard_millard
     lat: float  # latitude [degrees N]
-    H: float  # mixed layer depth [m]
+    H: float  # mixed layer depth [m]; the initial depth in models where it evolves
     rho: float  # density [kg/m^3]
     tau_x: float  # wind stress (east) [N/m^2]
     tau_y: float  # wind stress (north)[N/m^2]
+    zeta_over_f: float  # background vorticity over f, zeta/f; front runs east-west, jet U(y), zeta = -dU/dy
     damping_days: float  # pollard-millard friction term [days]
     duration_days: float  # length of the run [days]
     dt: float  # time step [s]
+    step_type: str  # "exact" (step_exact) or "rk4" (step_rk4)
+    forcing: str  # "average" (step_exact's treatment) or "linear"; how wind is treated within a step
     u_initial: float  # initial east velocity [m/s]
     v_initial: float  # initial north velocity [m/s]
     wind_type: str  # steady, rotating or oscillating
@@ -52,6 +69,11 @@ class RunConfig:
     gust_std: float  # random gust size, per component [N/m^2]; 0 = no gusts
     gust_hours: float  # typical gust duration [hours]
     seed: int  # random seed for the gusts
+
+    # Model-specific fields: not every model uses them, so a config may leave them out (None means "not
+    # given", not a default value). Each model checks the ones it needs with check_model_fields.
+    N2: float | None = None  # stratification below the mixed layer, N^2 [1/s^2]
+    Ri_critical: float | None = None  # bulk Richardson number below which the mixed layer deepens
 
     def __repr__(self) -> str:
         lines = [f"{field.name} = {getattr(self, field.name)}" for field in fields(self)]
@@ -86,6 +108,11 @@ class RunConfig:
         """Coriolis parameter at this run's latitude [1/s]."""
         return coriolis_parameter(self.lat)
 
+    @property
+    def zeta(self) -> float:
+        """Background relative vorticity [1/s]."""
+        return self.zeta_over_f * self.f
+
     def to_dict(self) -> dict[str, Any]:
-        """Plain dict of the inputs, for saving alongside a run's output."""
-        return asdict(self)
+        """Plain dict of the inputs that were given, for saving alongside a run's output."""
+        return {name: value for name, value in asdict(self).items() if value is not None}
